@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 debian:bookworm-slim AS base
+FROM --platform=linux/amd64 debian:12.5-slim AS base
 
 ARG APT_HTTP_PROXY
 
