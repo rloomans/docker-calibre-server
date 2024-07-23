@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 debian:12.6-slim AS base
+FROM debian:12.6-slim AS base
 
 ARG APT_HTTP_PROXY
 
@@ -28,8 +28,9 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
-RUN curl -o /tmp/calibre-tarball.txz -L \
-        "https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-x86_64.txz" && \
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCH=x86_64; else ARCH=arm64; fi && \
+    curl -o /tmp/calibre-tarball.txz -L \
+        "https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" && \
     mkdir -p /opt/calibre && \
     tar xvf /tmp/calibre-tarball.txz -C /opt/calibre && \
     rm -rf /tmp/*
