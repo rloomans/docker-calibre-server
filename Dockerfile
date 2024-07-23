@@ -1,4 +1,4 @@
-FROM --platform=$TARGETPLATFORM debian:bookworm-slim AS base
+FROM debian:bookworm-slim AS base
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -18,7 +18,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
-FROM --platform=$BUILDPLATFORM debian:bookworm-slim AS download
+FROM --platform=${BUILDPLATFORM} debian:bookworm-slim AS download
 
 ARG CALIBRE_RELEASE="7.15.0"
 
