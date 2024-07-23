@@ -1,6 +1,10 @@
-FROM debian:12.6-slim AS base
+FROM --platform=$TARGETPLATFORM debian:bookworm-slim AS base
 
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 ARG APT_HTTP_PROXY
+
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
 RUN export DEBIAN_FRONTEND="noninteractive" && \
     if [ -n "$APT_HTTP_PROXY" ]; then \
@@ -14,7 +18,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
-FROM base AS download
+FROM --platform=$BUILDPLATFORM debian:bookworm-slim AS download
 
 ARG CALIBRE_RELEASE="7.15.0"
 
@@ -24,7 +28,9 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
     fi && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        xz-utils && \
+        xz-utils \
+        curl \
+        ca-certificates && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
