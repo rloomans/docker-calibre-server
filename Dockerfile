@@ -2,8 +2,6 @@ FROM debian:bookworm-slim AS base
 
 ARG APT_HTTP_PROXY
 
-RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
-
 RUN export DEBIAN_FRONTEND="noninteractive" && \
     if [ -n "$APT_HTTP_PROXY" ]; then \
         printf 'Acquire::http::Proxy "%s";\n' "${APT_HTTP_PROXY}" > /etc/apt/apt.conf.d/apt-proxy.conf; \
