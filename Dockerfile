@@ -1,7 +1,5 @@
 FROM debian:bookworm-slim AS base
 
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
 ARG APT_HTTP_PROXY
 
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
@@ -21,6 +19,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
 FROM --platform=${BUILDPLATFORM} debian:bookworm-slim AS download
 
 ARG CALIBRE_RELEASE="7.15.0"
+ARG TARGETPLATFORM
 
 RUN export DEBIAN_FRONTEND="noninteractive" && \
     if [ -n "$APT_HTTP_PROXY" ]; then \
@@ -34,7 +33,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCH=x86_64; else ARCH=arm64; fi && \
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then ARCH=x86_64; elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then ARCH=arm64; else env; false; fi && \
     curl -o /tmp/calibre-tarball.txz -L \
         "https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" && \
     mkdir -p /opt/calibre && \
@@ -63,6 +62,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
         hicolor-icon-theme \
         iproute2 \
         libegl1 \
+	libdeflate0 \
         libfontconfig \
         libglx0 \
         libnss3 \
