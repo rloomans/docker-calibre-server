@@ -31,9 +31,16 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
     apt-get clean && \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
-RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then ARCH=x86_64; elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then ARCH=arm64; else env; false; fi && \
-    curl -o /tmp/calibre-tarball.txz -L \
-        "https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" && \
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+        ARCH=x86_64; \
+    elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+        ARCH=arm64; \
+    else \
+        echo "Unsupported target platform: ${TARGETPLATFORM}"; false; \
+    fi && \
+    URL="https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" && \
+    echo "fetching $URL" && \
+    curl -o /tmp/calibre-tarball.txz -L "$URL" && \
     mkdir -p /opt/calibre && \
     tar xvf /tmp/calibre-tarball.txz -C /opt/calibre && \
     rm -rf /tmp/*
@@ -60,7 +67,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
         hicolor-icon-theme \
         iproute2 \
         libegl1 \
-	libdeflate0 \
+        libdeflate0 \
         libfontconfig \
         libglx0 \
         libnss3 \
