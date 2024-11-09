@@ -66,6 +66,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
         ca-certificates \
         hicolor-icon-theme \
         iproute2 \
+	libasound2 \
         libegl1 \
         libdeflate0 \
         libfontconfig \
