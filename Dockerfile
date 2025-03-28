@@ -16,7 +16,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
 
 FROM --platform=${BUILDPLATFORM} debian:bookworm-slim AS download
 
-ARG CALIBRE_RELEASE="8.1.0"
+ARG CALIBRE_RELEASE="8.1.1"
 ARG TARGETPLATFORM
 
 RUN export DEBIAN_FRONTEND="noninteractive" && \
