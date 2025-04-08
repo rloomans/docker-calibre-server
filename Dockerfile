@@ -1,35 +1,7 @@
-FROM debian:bookworm-slim AS base
-
-ARG APT_HTTP_PROXY
-
-RUN export DEBIAN_FRONTEND="noninteractive" \
-    && if [ -n "$APT_HTTP_PROXY" ]; then \
-        printf 'Acquire::http::Proxy "%s";\n' "${APT_HTTP_PROXY}" > /etc/apt/apt.conf.d/apt-proxy.conf; \
-    fi \
-    && apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends \
-        curl \
-        ca-certificates \
-    && apt-get clean \
-    && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
-
-FROM --platform=${BUILDPLATFORM} debian:bookworm-slim AS download
+FROM --platform=${BUILDPLATFORM} alpine/curl AS download
 
 ARG CALIBRE_RELEASE="8.2.1"
 ARG TARGETPLATFORM
-
-RUN export DEBIAN_FRONTEND="noninteractive" \
-    && if [ -n "$APT_HTTP_PROXY" ]; then \
-        printf 'Acquire::http::Proxy "%s";\n' "${APT_HTTP_PROXY}" > /etc/apt/apt.conf.d/apt-proxy.conf; \
-    fi \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl \
-        ca-certificates \
-        xz-utils \
-    && apt-get clean \
-    && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
 RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
         ARCH=x86_64; \
@@ -45,7 +17,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
     && tar xvf /tmp/calibre-tarball.txz -C /opt/calibre \
     && rm -rf /tmp/*
 
-FROM base AS runtime
+FROM debian:bookworm-slim AS runtime
 
 LABEL name="Calibre Server"
 LABEL maintainer="Robert Loomans <robert@loomans.org>"
@@ -57,16 +29,20 @@ LABEL org.opencontainers.image.authors="Robert Loomans <robert@loomans.org>"
 LABEL org.opencontainers.image.source="https://github.com/rloomans/docker-calibre-server"
 LABEL org.opencontainers.image.description="A minimal Calibre docker image that runs calibre-server"
 
+ARG APT_HTTP_PROXY
+
 RUN export DEBIAN_FRONTEND="noninteractive" \
     && if [ -n "$APT_HTTP_PROXY" ]; then \
         printf 'Acquire::http::Proxy "%s";\n' "${APT_HTTP_PROXY}" > /etc/apt/apt.conf.d/apt-proxy.conf; \
     fi \
     && apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        curl \
         hicolor-icon-theme \
         iproute2 \
-	libasound2 \
+        libasound2 \
         libdeflate0 \
         libegl1 \
         libfontconfig \
