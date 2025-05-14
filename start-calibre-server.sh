@@ -17,7 +17,7 @@ touch "/library/metadata.db"
 export LANG=C.UTF-8
 export XDG_RUNTIME_DIR=/tmp/runtime-root
 
-/usr/bin/calibre-server \
+exec /usr/bin/calibre-server \
     --disable-use-bonjour \
     --enable-local-write \
     --trusted-ips="${TRUSTED_IPS}" \
