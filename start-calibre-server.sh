@@ -14,7 +14,10 @@ echo "trusted ips: ${TRUSTED_IPS}"
 
 touch "/library/metadata.db"
 
-XDG_RUNTIME_DIR=/tmp/runtime-root /usr/bin/calibre-server \
+export LANG=C.UTF-8
+export XDG_RUNTIME_DIR=/tmp/runtime-root
+
+/usr/bin/calibre-server \
     --disable-use-bonjour \
     --enable-local-write \
     --trusted-ips="${TRUSTED_IPS}" \
