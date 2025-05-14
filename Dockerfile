@@ -63,20 +63,28 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
 RUN ln -s /bin/true /usr/local/bin/xdg-desktop-menu \
     && ln -s /bin/true /usr/local/bin/xdg-mime
 
+RUN groupadd -g 1234 appgroup && \
+    useradd -m -u 1234 -g appgroup --home-dir /app appuser
+
 RUN mkdir /library \
     && touch /library/metadata.db \
     && mkdir /config \
-    && touch /config/server-users.sqlite
+    && touch /config/server-users.sqlite \
+    && chown -R appuser:appgroup /config
 
 VOLUME /library
 VOLUME /config
-
-COPY start-calibre-server.sh /
 
 COPY --from=download /opt/calibre /opt/calibre
 
 RUN /opt/calibre/calibre_postinstall --make-errors-fatal
 
+COPY start-calibre-server.sh /
+
 EXPOSE 8080
+
+WORKDIR /app
+
+USER appuser:appgroup
 
 CMD [ "/start-calibre-server.sh" ]
