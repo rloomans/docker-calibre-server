@@ -19,7 +19,7 @@ export XDG_RUNTIME_DIR=/tmp/runtime-root
 
 exec /usr/bin/calibre-server \
     --disable-use-bonjour \
-    --enable-local-write \
+    --enable-auth \
     --trusted-ips="${TRUSTED_IPS}" \
     --userdb=/config/server-users.sqlite \
     "$@" \
