@@ -13,10 +13,9 @@ RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
     && URL="https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" \
     && echo "fetching $URL" \
     && curl -o /tmp/calibre-tarball.txz -L "$URL" \
-    && mkdir -p /app/calibre \
-    && tar xvf /tmp/calibre-tarball.txz -C /app/calibre \
+    && mkdir -p /opt/calibre \
+    && tar xvf /tmp/calibre-tarball.txz -C /opt/calibre \
     && rm -rf /tmp/*
-
 
 FROM debian:bookworm-slim AS runtime
 
@@ -61,18 +60,23 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
     && apt-get clean \
     && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /etc/apt/apt.conf.d/apt-proxy.conf
 
-COPY --from=download /app/calibre /app/calibre
-
 RUN ln -s /bin/true /usr/local/bin/xdg-desktop-menu \
-    && ln -s /bin/true /usr/local/bin/xdg-mime \
-    && /app/calibre/calibre_postinstall --make-errors-fatal \
-    && mkdir /library \
-    && touch /library/metadata.db
+    && ln -s /bin/true /usr/local/bin/xdg-mime
 
-COPY start-calibre-server.sh .
+RUN mkdir /library \
+    && touch /library/metadata.db \
+    && mkdir /config \
+    && touch /config/server-users.sqlite
+
+VOLUME /library
+VOLUME /config
+
+COPY start-calibre-server.sh /
+
+COPY --from=download /opt/calibre /opt/calibre
+
+RUN /opt/calibre/calibre_postinstall --make-errors-fatal
 
 EXPOSE 8080
-
-WORKDIR /app/calibre
 
 CMD [ "/start-calibre-server.sh" ]
