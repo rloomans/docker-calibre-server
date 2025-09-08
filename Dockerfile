@@ -3,13 +3,9 @@ FROM --platform=${BUILDPLATFORM} alpine/curl AS download
 ARG CALIBRE_RELEASE="8.10.0"
 ARG TARGETPLATFORM
 
-RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
-        ARCH=x86_64; \
-    elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
-        ARCH=arm64; \
-    else \
-        echo "Unsupported target platform: ${TARGETPLATFORM}"; false; \
-    fi \
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then ARCH=x86_64; \
+    elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then ARCH=arm64; \
+    else echo "Unsupported target platform: ${TARGETPLATFORM}"; false; fi \
     && URL="https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" \
     && echo "fetching $URL" \
     && curl -o /tmp/calibre-tarball.txz -L "$URL" \
