@@ -13,7 +13,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then ARCH=x86_64; \
     && tar xvf /tmp/calibre-tarball.txz -C /opt/calibre \
     && rm -rf /tmp/*
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 
 LABEL name="Calibre Server"
 LABEL maintainer="Robert Loomans <robert@loomans.org>"
@@ -47,6 +47,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         libopengl0 \
         libxcomposite1 \
         libxdamage1 \
+        libxfixes3 \
         libxkbcommon0 \
         libxkbfile1 \
         libxrandr2 \
