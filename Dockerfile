@@ -85,3 +85,4 @@ WORKDIR /app
 USER appuser:appgroup
 
 CMD [ "/start-calibre-server.sh" ]
+
