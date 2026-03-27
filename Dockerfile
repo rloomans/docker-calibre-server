@@ -1,6 +1,6 @@
 FROM --platform=${BUILDPLATFORM} alpine/curl AS download
 
-ARG CALIBRE_RELEASE="9.5.0"
+ARG CALIBRE_RELEASE="9.6.0"
 ARG TARGETPLATFORM
 
 RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then ARCH=x86_64; \
