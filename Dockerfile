@@ -7,19 +7,29 @@ ARG CALIBRE_RELEASE_SHA512_X86_64="9faf38f6bb0593598208fbde1be247d698a98d9f16e13
 ARG CALIBRE_RELEASE_SHA512_ARM64="4cf033e6b4cd511c7b8db0d1d8e63f245a07416dbc3a96ebb95ec88d78aebeb6d2b91638ef56650eeb1129bd87ef49132a8d36ea179896dfc24b0680e0bcd5fb"
 ARG TARGETPLATFORM
 
-RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+RUN --mount=type=cache,target=/cache \
+    if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
         ARCH=x86_64; SHA256_CHECKSUM="${CALIBRE_RELEASE_SHA256_X86_64}"; SHA512_CHECKSUM="${CALIBRE_RELEASE_SHA512_X86_64}"; \
     elif [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
         ARCH=arm64; SHA256_CHECKSUM="${CALIBRE_RELEASE_SHA256_ARM64}"; SHA512_CHECKSUM="${CALIBRE_RELEASE_SHA512_ARM64}"; \
     else echo "Unsupported target platform: ${TARGETPLATFORM}"; false; fi \
     && URL="https://github.com/kovidgoyal/calibre/releases/download/v${CALIBRE_RELEASE}/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" \
-    && echo "fetching $URL" \
-    && curl -o /tmp/calibre-tarball.txz -L "$URL" \
-    && printf '%s  %s\n' "$SHA256_CHECKSUM" /tmp/calibre-tarball.txz | sha256sum -c - \
-    && printf '%s  %s\n' "$SHA512_CHECKSUM" /tmp/calibre-tarball.txz | sha512sum -c - \
+    && TARBALL="/cache/calibre-${CALIBRE_RELEASE}-${ARCH}.txz" \
+    && verify() { \
+        printf '%s  %s\n' "$SHA256_CHECKSUM" "$TARBALL" | sha256sum -c - \
+        && printf '%s  %s\n' "$SHA512_CHECKSUM" "$TARBALL" | sha512sum -c -; \
+    } \
+    && if [ -f "$TARBALL" ] && verify; then \
+        echo "using cached $TARBALL"; \
+    else \
+        rm -f "$TARBALL" \
+        && echo "fetching $URL" \
+        && curl -fL -o "$TARBALL.part" "$URL" \
+        && mv "$TARBALL.part" "$TARBALL" \
+        && verify; \
+    fi \
     && mkdir -p /opt/calibre \
-    && tar xvf /tmp/calibre-tarball.txz -C /opt/calibre \
-    && rm -rf /tmp/*
+    && tar xvf "$TARBALL" -C /opt/calibre
 
 FROM debian:trixie-slim AS runtime
 
