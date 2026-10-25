@@ -1,22 +1,29 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# GitHub recommends pinning actions to a commit SHA.
-# To get a newer version, you will need to update the SHA.
-# You can also reference a tag or branch, but the action may change without warning.
-
 name: Publish Docker Image
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   release:
     types:
       - published
+  schedule:
+    # Weekly rebuild to pick up base image and SmokePing updates
+    - cron: '30 19 * * 6'
   workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOCKERHUB_IMAGE: rloomans/calibre-server
+  GHCR_IMAGE: ghcr.io/rloomans/calibre-server
 
 jobs:
   push_to_registries:
@@ -31,7 +38,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Determine Calibre version
+        id: calibre
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME}"
+          else
+            version="$(git describe --tags --abbrev=0)"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -59,14 +77,14 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
-            rloomans/calibre-server
-            ghcr.io/rloomans/calibre-server
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
           flavor: |
             latest=auto
           tags: |
-            type=ref,event=branch
+            type=raw,value=latest
             type=ref,event=tag
-            type=schedule,pattern={{date 'YYYYMMDD-hhmmss' tz='Australia/Brisbane'}}
+            type=raw,value=${{ steps.calibre.outputs.version }}-{{date 'YYYY.MM.DD' tz='Australia/Brisbane'}}-${{ github.run_number }}
             type=sha
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
@@ -89,4 +107,4 @@ jobs:
           username: ${{ vars.DOCKER_USERNAME }}
           # docker... https://github.com/peter-evans/dockerhub-description/issues/10
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: rloomans/calibre-server
+          repository: ${{ env.DOCKERHUB_IMAGE }}
