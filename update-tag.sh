@@ -71,6 +71,3 @@ else
 
     git tag --force "${TAG}"
 fi
-
-git push --force --tags
-git push origin "${TAG}"
