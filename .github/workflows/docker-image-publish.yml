@@ -44,11 +44,7 @@ jobs:
       - name: Determine Calibre version
         id: calibre
         run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            version="${GITHUB_REF_NAME}"
-          else
-            version="$(git describe --tags --abbrev=0)"
-          fi
+          version=$(grep 'ARG CALIBRE_RELEASE=' Dockerfile | sed 's/.*"\(.*\)".*/\1/')
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
 
       - name: Set up QEMU
